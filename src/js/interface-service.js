@@ -17,15 +17,18 @@ class MarkUpInterface {
     this[name] = document.querySelector(id);
   }
 
-  onListenerScroll(callback) {
-    this.scrollCallback = callback.bind(this);
-    this.throttleFoo = throttle(this.scrollCallback, 500);
-    window.addEventListener('scroll', this.throttleFoo);
+  onInfinityScroll(callback) {
+    const options = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.25,
+    };
+
+    const observer = new IntersectionObserver(callback, options);
+    observer.observe(this.buttonMore);
   }
 
-  offListenerScroll() {
-    window.removeEventListener('scroll', this.throttleFoo);
-  }
+  offInfinityScroll() {}
 
   markUpGallery(arr) {
     const markUp = arr

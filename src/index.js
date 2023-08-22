@@ -10,34 +10,15 @@ const ref = {
 };
 
 const interFace = new MarkUpInterface(ref);
-interFace.setNewElement('checkBox', '.infinity-check');
 
 interFace.form.addEventListener('submit', onShowResult);
-interFace.buttonMore.addEventListener('click', loadMorelResult);
-interFace.checkBox.addEventListener('change', switchInfiniteScroll);
-
-//switchOn or switchOff infinite scroll
-function switchInfiniteScroll(evt) {
-  const { checked } = evt.currentTarget;
-
-  if (checked) {
-    interFace.hiddenButtonLoadMore();
-    interFace.onListenerScroll(loadMorelResult);
-  } else {
-    interFace.offListenerScroll();
-    if (totalImg) {
-      interFace.showButtonLoadMore();
-    }
-  }
-}
 
 //First download images
 function onShowResult(evt) {
   evt.preventDefault();
-  interFace.hiddenButtonLoadMore();
   interFace.clearGallery();
 
-  const { searchQuery, onScroll } = evt.currentTarget.elements;
+  const { searchQuery } = evt.currentTarget.elements;
 
   if (!searchQuery.value) {
     interFace.showNotification('notFound');
@@ -54,29 +35,16 @@ function onShowResult(evt) {
       } else {
         interFace.markUpGallery(hits);
         interFace.showNotification('foundedImages', totalHits);
+        interFace.onInfinityScroll(loadMorelResult);
         totalImg -= hits.length;
-
-        if (totalImg && !onScroll.checked) {
-          interFace.showButtonLoadMore();
-        }
       }
     })
     .catch(error => console.log(error));
 }
 
 //next download images
-function loadMorelResult() {
-  const heightGallery = interFace.gallery.scrollHeight;
-  const { height: cardHeigth } =
-    interFace.gallery.firstElementChild.getBoundingClientRect();
-  const currentScroll = window.scrollY;
-
-  const isEndOfPage = currentScroll > heightGallery - cardHeigth * 3;
-
-  if (isEndOfPage && !totalImg) {
-    interFace.offListenerScroll();
-    return;
-  } else if (isEndOfPage) {
+function loadMorelResult(evt) {
+  if (evt[0].intersectionRatio > 0) {
     pixabayApi
       .fetchMoreImages()
       .then(data => {
@@ -87,10 +55,24 @@ function loadMorelResult() {
         totalImg -= hits.length;
 
         if (!totalImg) {
-          interFace.hiddenButtonLoadMore();
           interFace.showNotification('notMoreImages');
         }
       })
       .catch(error => console.log(error));
   }
 }
+
+// //switchOn or switchOff infinite scroll
+// function switchInfiniteScroll(evt) {
+//   const { checked } = evt.currentTarget;
+
+//   if (checked) {
+//     interFace.hiddenButtonLoadMore();
+//     interFace.onListenerScroll(loadMorelResult);
+//   } else {
+//     interFace.offListenerScroll();
+//     if (totalImg) {
+//       interFace.showButtonLoadMore();
+//     }
+//   }
+// }
